@@ -1,25 +1,22 @@
 export const dynamic = 'force-dynamic';
 
-import { createClient } from '@supabase/supabase-js';
+import { supabase } from "@/lib/supabase";
 import { DataTable } from "./data_table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
 import { 
-  colunasNotasFiscais, 
+  colunasDANFEs, 
   colunasBoletos, 
   colunasOutrosDocumentos 
 } from "./columns";
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
-const supabase = createClient(supabaseUrl, supabaseKey);
 
 export default async function DocumentosPage() {
   
   const [resNotas, resBoletos, resOutros] = await Promise.all([
-    supabase.from('notas_fiscais').select('*').order('created_at', { ascending: false }),
-    supabase.from('boletos').select('*').order('created_at', { ascending: false }),
-    supabase.from('outros_documentos').select('*').order('created_at', { ascending: false })
+    supabase.from('danfe').select('*').order('created_at', { ascending: false }),
+    supabase.from('boleto').select('*').order('created_at', { ascending: false }),
+    supabase.from('outro_documento').select('*').order('created_at', { ascending: false })
   ]);
 
   return (
@@ -50,7 +47,7 @@ export default async function DocumentosPage() {
           {resNotas.error ? (
             <p className="text-red-500">Erro: {resNotas.error.message}</p>
           ) : (
-            <DataTable columns={colunasNotasFiscais} data={resNotas.data || []} searchPlaceholder="Pesquisar" />
+            <DataTable columns={colunasDANFEs} data={resNotas.data || []} searchPlaceholder="Pesquisar" />
           )}
         </TabsContent>
 

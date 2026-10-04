@@ -16,52 +16,54 @@ import {
 } from "@/components/ui/dropdown-menu"
 
 import { DataTableColumnHeader } from "@/components/ui/data_table_column_header"
-import { obterUrlDoDocumento } from "@/lib/documentos"; // ou o caminho correto de onde você salvou a função
+import { BotaoVerProdutos } from "@/components/ui/visualizar_dados_dos_produtos";
+import { obterUrlDoDocumento } from "@/lib/documentos";
 
-export type NotaFiscal = {
+export type DANFE = {
   id: number
-  nf_caminho_do_arquivo: string
-  nf_nome_do_emitente: string
-  nf_cnpj_do_emitente: string
-  nf_nome_do_destinatario: string
-  nf_cnpj_do_destinatario: string
-  nf_numero: string
-  nf_data_de_emissao: string
-  nf_descricao: string
-  nf_valor_total: number
-  nf_valor_liquido: number
+  nome_do_arquivo: string[] | null;
+  nome_do_emitente: string | null;
+  cnpj_do_emitente: string | null;
+  nome_do_destinatario: string | null;
+  cnpj_do_destinatario: string | null;
+  numero: string | null;
+  data_de_emissao: string | null;
+  valor_total_da_nota: number | null;
+  chave_de_acesso: string | null;
+  categoria_de_gasto: string | null;
 }
 
 export type Boleto = {
   id: number
-  bol_caminho_do_arquivo: string
-  bol_nome_do_beneficiario: string
-  bol_cnpj_do_beneficiario: string
-  bol_nome_do_pagador: string
-  bol_cnpj_do_pagador: string
-  bol_nosso_numero: string
-  bol_numero_do_documento: string
-  bol_data_do_documento: string
-  bol_data_do_vencimento: string
-  bol_valor_do_documento: number
-  bol_linha_digitavel: string
+  caminho_do_arquivo: string | null;
+  nome_do_beneficiario: string | null;
+  cnpj_do_beneficiario: string | null;
+  nome_do_pagador: string | null;
+  cnpj_do_pagador: string | null;
+  nosso_numero: string | null;
+  numero_do_documento: string | null;
+  data_do_documento: string | null;
+  valor_do_documento: number | null;
+  linha_digitavel: string | null;
+  valor_cobrado: number | null;
+  vencimento: string | null;
 }
 
 export type OutroDocumento = {
   id: number
-  od_caminho_do_arquivo: string
-  od_nome_do_emitente: string
-  od_cnpj_do_emitente: string
-  od_nome_do_destinatario: string
-  od_cnpj_do_destinatario: string
-  od_numero: string
-  od_data_de_emissao: string
-  od_descricao: string
-  od_valor_total: number
-  od_valor_liquido: number
+  nome_do_arquivo: string | null;
+  nome_do_emitente: string | null;
+  cnpj_do_emitente: string | null;
+  nome_do_destinatario: string | null;
+  cnpj_do_destinatario: string | null;
+  numero: string | null;
+  data_de_emissao: string | null;
+  valor_total_do_documento: number | null;
+  chave_de_acesso: string | null;
+  categoria_de_gasto: string | null;
 }
 
-const helperNotasFiscais = createColumnHelper<DataTableFeatures, NotaFiscal>()
+const helperDANFEs = createColumnHelper<DataTableFeatures, DANFE>()
 const helperBoletos = createColumnHelper<DataTableFeatures, Boleto>()
 const helperOutrosDocumentos = createColumnHelper<DataTableFeatures, OutroDocumento>()
 
@@ -89,51 +91,69 @@ const createSelectColumn = (helper: any) =>
     enableHiding: false,
   })
 
-export const colunasNotasFiscais = helperNotasFiscais.columns([
-  createSelectColumn(helperNotasFiscais),
-  helperNotasFiscais.accessor("id", { 
-    header: ({ column }) => <DataTableColumnHeader column={column} title="ID" /> 
+export const colunasDANFEs = helperDANFEs.columns([
+  createSelectColumn(helperDANFEs),
+  helperDANFEs.accessor("id", {
+    header: ({ column }) => <DataTableColumnHeader column={column} title="ID" />
   }),
-  helperNotasFiscais.accessor("nf_nome_do_emitente", { 
-    header: ({ column }) => <DataTableColumnHeader column={column} title="Nome do emitente" /> 
+  helperDANFEs.accessor("nome_do_emitente", {
+    header: ({ column }) => <DataTableColumnHeader column={column} title="Nome do emitente" />
   }),
-  helperNotasFiscais.accessor("nf_cnpj_do_emitente", { 
-    header: ({ column }) => <DataTableColumnHeader column={column} title="CNPJ do emitente" /> 
+  helperDANFEs.accessor("cnpj_do_emitente", {
+    header: ({ column }) => <DataTableColumnHeader column={column} title="CNPJ do emitente" />
   }),
-  helperNotasFiscais.accessor("nf_nome_do_destinatario", { 
-    header: ({ column }) => <DataTableColumnHeader column={column} title="Nome do destinatário" /> 
+  helperDANFEs.accessor("categoria_de_gasto", {
+    header: ({ column }) => <DataTableColumnHeader column={column} title="Categoria de gasto" />
   }),
-  helperNotasFiscais.accessor("nf_cnpj_do_destinatario", { 
-    header: ({ column }) => <DataTableColumnHeader column={column} title="CNPJ do destinatário" /> 
+  helperDANFEs.accessor("nome_do_destinatario", {
+    header: ({ column }) => <DataTableColumnHeader column={column} title="Nome do destinatário" />
   }),
-  helperNotasFiscais.accessor("nf_numero", { 
-    header: ({ column }) => <DataTableColumnHeader column={column} title="Número" /> 
+  helperDANFEs.accessor("cnpj_do_destinatario", {
+    header: ({ column }) => <DataTableColumnHeader column={column} title="CNPJ do destinatário" />
   }),
-  helperNotasFiscais.accessor("nf_data_de_emissao", { 
-    header: ({ column }) => <DataTableColumnHeader column={column} title="Data de emissão" /> 
+  helperDANFEs.accessor("numero", {
+    header: ({ column }) => <DataTableColumnHeader column={column} title="Número" />
   }),
-  helperNotasFiscais.accessor("nf_descricao", { 
-    header: ({ column }) => <DataTableColumnHeader column={column} title="Descrição" /> 
+  helperDANFEs.accessor("data_de_emissao", {
+    header: ({ column }) => <DataTableColumnHeader column={column} title="Data de emissão" />
   }),
-  helperNotasFiscais.accessor("nf_valor_total", {
-    header: ({ column }) => <DataTableColumnHeader column={column} title="Valor total" />,
+  helperDANFEs.accessor("valor_total_da_nota", {
+    header: ({ column }) => <DataTableColumnHeader column={column} title="Valor total da nota" />,
     cell: ({ row }) => {
-      const valor = row.getValue("nf_valor_total")
-      return valor ? `R$ ${Number(valor).toFixed(2)}` : "-"
+      const valor = row.getValue("valor_total_da_nota") as number;
+      if (valor === null || valor === undefined) return "-";
+      return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(valor);
     }
   }),
-  helperNotasFiscais.accessor("nf_valor_liquido", {
-    header: ({ column }) => <DataTableColumnHeader column={column} title="Valor líquido" />,
-    cell: ({ row }) => {
-      const valor = row.getValue("nf_valor_liquido")
-      return valor ? `R$ ${Number(valor).toFixed(2)}` : "-"
-    }
+  helperDANFEs.accessor("chave_de_acesso", {
+    header: ({ column }) => <DataTableColumnHeader column={column} title="Chave de acesso" />
   }),
+  
+    helperDANFEs.display({
+      id: "itens",
+      header: () => <div className="text-center font-medium">Dados do produto</div>,
+      cell: ({ row }) => {
+        const chave = row.original.chave_de_acesso;
+        
+        if (!chave) {
+          return <div className="text-center text-gray-400 text-sm">-</div>;
+        }
+        
+        return (
+          <div className="text-center">
+            <BotaoVerProdutos 
+              chaveDeAcesso={chave} 
+              tabelaProdutos="danfe_dados_do_produto" 
+            />
+          </div>
+        );
+      }
+    }),
 
-    helperNotasFiscais.display({
+    helperDANFEs.display({
       id: "acoes",
       cell: ({ row }) => {
-        const nota_fiscal = row.original
+        const danfe = row.original
         return (
           <DropdownMenu>
             <DropdownMenuTrigger className="flex h-8 w-8 items-center justify-center rounded-md hover:bg-gray-100 transition-colors">
@@ -144,12 +164,10 @@ export const colunasNotasFiscais = helperNotasFiscais.columns([
               <DropdownMenuItem 
                 className="cursor-pointer"
                 onClick={async () => {
-                  if (nota_fiscal.nf_caminho_do_arquivo) {
+                  if (danfe.nome_do_arquivo && danfe.nome_do_arquivo.length > 0) {
                     try {
-                      // 1. Pede a URL segura (usa o cache ou vai no backend)
-                      const urlSegura = await obterUrlDoDocumento(nota_fiscal.nf_caminho_do_arquivo);
+                      const urlSegura = await obterUrlDoDocumento(danfe.nome_do_arquivo[0]);
                       
-                      // 2. Abre a aba com o PDF
                       window.open(urlSegura, '_blank');
                     } catch (erro) {
                       console.error("Erro ao obter URL:", erro);
@@ -174,41 +192,50 @@ export const colunasBoletos = helperBoletos.columns([
   helperBoletos.accessor("id", { 
     header: ({ column }) => <DataTableColumnHeader column={column} title="ID" /> 
   }),
-  helperBoletos.accessor("bol_nome_do_beneficiario", { 
+  helperBoletos.accessor("nome_do_beneficiario", { 
     header: ({ column }) => <DataTableColumnHeader column={column} title="Nome do beneficiário" /> 
   }),
-  helperBoletos.accessor("bol_cnpj_do_beneficiario", { 
+  helperBoletos.accessor("cnpj_do_beneficiario", { 
     header: ({ column }) => <DataTableColumnHeader column={column} title="CNPJ do beneficiário" /> 
   }),
-  helperBoletos.accessor("bol_nome_do_pagador", { 
+  helperBoletos.accessor("nome_do_pagador", { 
     header: ({ column }) => <DataTableColumnHeader column={column} title="Nome do pagador" /> 
   }),
-  helperBoletos.accessor("bol_cnpj_do_pagador", { 
+  helperBoletos.accessor("cnpj_do_pagador", { 
     header: ({ column }) => <DataTableColumnHeader column={column} title="CNPJ do pagador" /> 
   }),
-  helperBoletos.accessor("bol_nosso_numero", { 
+  helperBoletos.accessor("nosso_numero", { 
     header: ({ column }) => <DataTableColumnHeader column={column} title="Nosso número" /> 
   }),
-  helperBoletos.accessor("bol_numero_do_documento", { 
+  helperBoletos.accessor("numero_do_documento", { 
     header: ({ column }) => <DataTableColumnHeader column={column} title="Número do documento" /> 
   }),
-  helperBoletos.accessor("bol_data_do_documento", { 
-    header: ({ column }) => <DataTableColumnHeader column={column} title="Data do documento" /> 
+  helperBoletos.accessor("data_do_documento", {
+      header: ({ column }) => <DataTableColumnHeader column={column} title="Data do documento" />
+    }),
+    helperBoletos.accessor("vencimento", { 
+    header: ({ column }) => <DataTableColumnHeader column={column} title="Vencimento" />
   }),
-  helperBoletos.accessor("bol_data_do_vencimento", { 
-    header: ({ column }) => <DataTableColumnHeader column={column} title="Data do vencimento" /> 
-  }),
-  helperBoletos.accessor("bol_valor_do_documento", {
+  helperBoletos.accessor("valor_do_documento", {
     header: ({ column }) => <DataTableColumnHeader column={column} title="Valor do documento" />,
     cell: ({ row }) => {
-      const valor = row.getValue("bol_valor_do_documento")
-      return valor ? `R$ ${Number(valor).toFixed(2)}` : "-"
+      const valor = row.getValue("valor_do_documento") as number;
+      if (valor === null || valor === undefined) return "-";
+      return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(valor);
     }
   }),
-  helperBoletos.accessor("bol_linha_digitavel", { 
-    header: ({ column }) => <DataTableColumnHeader column={column} title="Linha digitável" /> 
+  helperBoletos.accessor("valor_cobrado", {
+    header: ({ column }) => <DataTableColumnHeader column={column} title="Valor cobrado" />,
+    cell: ({ row }) => {
+      const valor = row.getValue("valor_cobrado") as number;
+      if (valor === null || valor === undefined) return "-";
+      return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(valor);
+    }
   }),
-
+  helperBoletos.accessor("linha_digitavel", {
+    header: ({ column }) => <DataTableColumnHeader column={column} title="Linha digitável" />
+  }),
+  
     helperBoletos.display({
       id: "acoes",
       cell: ({ row }) => {
@@ -223,12 +250,10 @@ export const colunasBoletos = helperBoletos.columns([
               <DropdownMenuItem 
                 className="cursor-pointer"
                 onClick={async () => {
-                  if (boleto.bol_caminho_do_arquivo) {
+                  if (boleto.caminho_do_arquivo) {
                     try {
-                      // 1. Pede a URL segura (usa o cache ou vai no backend)
-                      const urlSegura = await obterUrlDoDocumento(boleto.bol_caminho_do_arquivo);
+                      const urlSegura = await obterUrlDoDocumento(boleto.caminho_do_arquivo);
                       
-                      // 2. Abre a aba com o PDF
                       window.open(urlSegura, '_blank');
                     } catch (erro) {
                       console.error("Erro ao obter URL:", erro);
@@ -250,44 +275,59 @@ export const colunasBoletos = helperBoletos.columns([
 
 export const colunasOutrosDocumentos = helperOutrosDocumentos.columns([
   createSelectColumn(helperOutrosDocumentos),
-  helperOutrosDocumentos.accessor("id", { 
-    header: ({ column }) => <DataTableColumnHeader column={column} title="ID" /> 
+  helperOutrosDocumentos.accessor("id", {
+    header: ({ column }) => <DataTableColumnHeader column={column} title="ID" />
   }),
-  helperOutrosDocumentos.accessor("od_nome_do_emitente", { 
-    header: ({ column }) => <DataTableColumnHeader column={column} title="Nome do emitente" /> 
+  helperOutrosDocumentos.accessor("nome_do_emitente", {
+    header: ({ column }) => <DataTableColumnHeader column={column} title="Nome do emitente" />
   }),
-  helperOutrosDocumentos.accessor("od_cnpj_do_emitente", { 
-    header: ({ column }) => <DataTableColumnHeader column={column} title="CNPJ do emitente" /> 
+  helperOutrosDocumentos.accessor("cnpj_do_emitente", {
+    header: ({ column }) => <DataTableColumnHeader column={column} title="CNPJ do emitente" />
   }),
-  helperOutrosDocumentos.accessor("od_nome_do_destinatario", { 
-    header: ({ column }) => <DataTableColumnHeader column={column} title="Nome do destinatário" /> 
+  helperOutrosDocumentos.accessor("categoria_de_gasto", {
+    header: ({ column }) => <DataTableColumnHeader column={column} title="Categoria de gasto" />
   }),
-  helperOutrosDocumentos.accessor("od_cnpj_do_destinatario", { 
-    header: ({ column }) => <DataTableColumnHeader column={column} title="CNPJ do destinatário" /> 
+  helperOutrosDocumentos.accessor("nome_do_destinatario", {
+    header: ({ column }) => <DataTableColumnHeader column={column} title="Nome do destinatário" />
   }),
-  helperOutrosDocumentos.accessor("od_numero", { 
-    header: ({ column }) => <DataTableColumnHeader column={column} title="Número" /> 
+  helperOutrosDocumentos.accessor("cnpj_do_destinatario", {
+    header: ({ column }) => <DataTableColumnHeader column={column} title="CNPJ do destinatário" />
   }),
-  helperOutrosDocumentos.accessor("od_data_de_emissao", { 
-    header: ({ column }) => <DataTableColumnHeader column={column} title="Data de emissão" /> 
+  helperOutrosDocumentos.accessor("numero", {
+    header: ({ column }) => <DataTableColumnHeader column={column} title="Número" />
   }),
-  helperOutrosDocumentos.accessor("od_descricao", { 
-    header: ({ column }) => <DataTableColumnHeader column={column} title="Descrição" /> 
+  helperOutrosDocumentos.accessor("data_de_emissao", {
+    header: ({ column }) => <DataTableColumnHeader column={column} title="Data de emissão" />
   }),
-  helperOutrosDocumentos.accessor("od_valor_total", {
-    header: ({ column }) => <DataTableColumnHeader column={column} title="Valor total" />,
+  helperOutrosDocumentos.accessor("valor_total_do_documento", {
+    header: ({ column }) => <DataTableColumnHeader column={column} title="Valor total do documento" />,
     cell: ({ row }) => {
-      const valor = row.getValue("od_valor_total")
-      return valor ? `R$ ${Number(valor).toFixed(2)}` : "-"
+      const valor = row.getValue("valor_total_do_documento") as number;
+      if (valor === null || valor === undefined) return "-";
+      return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(valor);
     }
   }),
-  helperOutrosDocumentos.accessor("od_valor_liquido", {
-    header: ({ column }) => <DataTableColumnHeader column={column} title="Valor líquido" />,
-    cell: ({ row }) => {
-      const valor = row.getValue("od_valor_liquido")
-      return valor ? `R$ ${Number(valor).toFixed(2)}` : "-"
-    }
-  }),
+
+    helperOutrosDocumentos.display({
+      id: "itens",
+      header: () => <div className="text-center font-medium">Dados do produto</div>,
+      cell: ({ row }) => {
+        const chave = row.original.chave_de_acesso;
+        
+        if (!chave) {
+          return <div className="text-center text-gray-400 text-sm">-</div>;
+        }
+        
+        return (
+          <div className="text-center">
+            <BotaoVerProdutos 
+              chaveDeAcesso={chave} 
+              tabelaProdutos="outro_documento_dados_do_produto" 
+            />
+          </div>
+        );
+      }
+    }),
 
     helperOutrosDocumentos.display({
       id: "acoes",
@@ -303,12 +343,10 @@ export const colunasOutrosDocumentos = helperOutrosDocumentos.columns([
               <DropdownMenuItem 
                 className="cursor-pointer"
                 onClick={async () => {
-                  if (outro_documento.od_caminho_do_arquivo) {
+                  if (outro_documento.nome_do_arquivo) {
                     try {
-                      // 1. Pede a URL segura (usa o cache ou vai no backend)
-                      const urlSegura = await obterUrlDoDocumento(outro_documento.od_caminho_do_arquivo);
+                      const urlSegura = await obterUrlDoDocumento(outro_documento.nome_do_arquivo[0]);
                       
-                      // 2. Abre a aba com o PDF
                       window.open(urlSegura, '_blank');
                     } catch (erro) {
                       console.error("Erro ao obter URL:", erro);
