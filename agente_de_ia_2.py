@@ -11,7 +11,7 @@ async def classificar_categoria_de_gasto(dados_estruturados_do_danfe: dict):
             questions={
                 "categoria de gasto": Choice(
                     instructions="Tendo em vista o campo 'dados do produto', qual é a categoria de gasto deste DANFE?",
-                    criteria={"Açougue": None, "Bebidas": None, "Embalagens e Descartáveis": None, "Hortifrúti": None, "Laticínios e Frios": None, "Mercearia": None, "Outros": None, "Padaria": None}
+                    criteria={"Açougue": None, "Bebidas": None, "Embalagens e Descartáveis": None, "Hortifrúti": None, "Laticínios e Frios": None, "Outros": None, "Padaria": None}
                 )
             }
         )
