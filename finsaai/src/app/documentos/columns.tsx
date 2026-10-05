@@ -13,6 +13,7 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
+  DropdownMenuGroup
 } from "@/components/ui/dropdown-menu"
 
 import { DataTableColumnHeader } from "@/components/ui/data_table_column_header"
@@ -161,25 +162,75 @@ export const colunasDANFEs = helperDANFEs.columns([
               <MoreHorizontal className="h-4 w-4" />
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuItem 
-                className="cursor-pointer"
-                onClick={async () => {
-                  if (danfe.nome_do_arquivo && danfe.nome_do_arquivo.length > 0) {
-                    try {
-                      const urlSegura = await obterUrlDoDocumento(danfe.nome_do_arquivo[0]);
-                      
-                      window.open(urlSegura, '_blank');
-                    } catch (erro) {
-                      console.error("Erro ao obter URL:", erro);
-                      alert("Erro ao abrir o documento. Verifique se o servidor está rodando.");
-                    }
-                  } else {
-                    alert("Arquivo não encontrado ou sem caminho registrado.");
+              <DropdownMenuGroup>
+                <DropdownMenuLabel>Ações</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+
+                {/* Lógica para listar todos os arquivos do documento */}
+                {(() => {
+                  const dadoBruto = row.original.nome_do_arquivo;
+                  
+                  if (!dadoBruto) {
+                    return <DropdownMenuItem disabled>Sem arquivos anexos</DropdownMenuItem>;
                   }
-                }}
-              >
-                Visualizar documento
-              </DropdownMenuItem>
+
+                  // Normalização segura do array de arquivos
+                  let listaDeArquivos: string[] = [];
+                  if (Array.isArray(dadoBruto)) {
+                    listaDeArquivos = dadoBruto;
+                  } else if (typeof dadoBruto === "string") {
+                    try {
+                      listaDeArquivos = (dadoBruto as string).startsWith("[") ? JSON.parse(dadoBruto as string) : [dadoBruto];
+                    } catch {
+                      listaDeArquivos = [dadoBruto];
+                    }
+                  }
+
+                  // Se houver apenas 1 arquivo, mostra botão simples
+                  if (listaDeArquivos.length === 1) {
+                    return (
+                      <DropdownMenuItem
+                        className="cursor-pointer"
+                        onClick={async () => {
+                          try {
+                            const urlSegura = await obterUrlDoDocumento(listaDeArquivos[0]);
+                            window.open(urlSegura, '_blank');
+                          } catch (erro) {
+                            console.error(erro);
+                            alert("Erro ao abrir o documento.");
+                          }
+                        }}
+                      >
+                        Visualizar documento
+                      </DropdownMenuItem>
+                    );
+                  }
+
+                  // Se houver MÚLTIPLOS arquivos, cria um item no menu para cada um
+                  return (
+                    <>
+                      <DropdownMenuLabel className="text-xs text-gray-500">Visualizar documento</DropdownMenuLabel>
+                      {listaDeArquivos.map((nomeArquivo, index) => (
+                        <DropdownMenuItem
+                          key={index}
+                          className="cursor-pointer"
+                          onClick={async () => {
+                            try {
+                              const urlSegura = await obterUrlDoDocumento(nomeArquivo);
+                              window.open(urlSegura, '_blank');
+                            } catch (erro) {
+                              console.error(erro);
+                              alert(`Erro ao abrir a página ${index + 1}.`);
+                            }
+                          }}
+                        >
+                          Arquivo {index + 1}
+                        </DropdownMenuItem>
+                      ))}
+                    </>
+                  );
+                })()}
+              </DropdownMenuGroup>
             </DropdownMenuContent>
           </DropdownMenu>
         )
