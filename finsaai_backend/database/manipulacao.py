@@ -1,13 +1,5 @@
-from dotenv import load_dotenv
-import os
-from supabase import create_client, Client
-from schemas import DadosEstruturadosDoDanfeTratado, DadosEstruturadosDoBoletoTratado, DadosEstruturadosDoOutroDocumentoTratado
-
-load_dotenv()
-url: str = os.environ.get("SUPABASE_URL")
-key: str = os.environ.get("SUPABASE_KEY")
-
-supabase: Client = create_client(url, key)
+from core.config import supabase
+from schemas.valid_structured_output import DadosEstruturadosDoDanfeTratado, DadosEstruturadosDoBoletoTratado, DadosEstruturadosDoOutroDocumentoTratado, DadosEstruturadosDoComprovanteDePagamentoTratado
 
 def salvar_dados_estruturados_do_danfe(dados_estruturados_do_danfe: dict, categoria_de_gasto: str, nome_arquivo_original: str):
     emitente = dados_estruturados_do_danfe.get("emitente", {})
@@ -191,6 +183,41 @@ def salvar_dados_estruturados_do_outro_documento(dados_estruturados_do_outro_doc
             print(f"Sucesso! {len(lote_de_produtos)} produtos inseridos em lote.")
         except Exception as e:
             print(f"Erro ao inserir o lote de produtos: {e}")
+
+def salvar_dados_estruturados_do_comprovante_de_pagamento(dados_estruturados_do_comprovante_de_pagamento: dict, nome_arquivo_original: str):
+    
+    beneficiario = dados_estruturados_do_comprovante_de_pagamento.get("beneficiario", {})
+    pagador = dados_estruturados_do_comprovante_de_pagamento.get("pagador", {})
+
+    try:
+        comprovante_de_pagamento_limpo = DadosEstruturadosDoComprovanteDePagamentoTratado(
+            nome_do_beneficiario=beneficiario.get("nome"),
+            cnpj_do_beneficiario=beneficiario.get("cnpj"),
+            nome_do_pagador=pagador.get("nome"),
+            cnpj_do_pagador=pagador.get("cnpj"),
+            data_de_pagamento=dados_estruturados_do_comprovante_de_pagamento.get("data_de_pagamento"),
+            valor_do_pagamento=dados_estruturados_do_comprovante_de_pagamento.get("valor_do_pagamento"),
+            autenticacao=dados_estruturados_do_comprovante_de_pagamento.get("autenticacao"),
+            id_da_transacao=dados_estruturados_do_comprovante_de_pagamento.get("id_da_transacao")
+        )
+    except Exception as e:
+        print(f"Erro ao validar e higienizar os dados do Comprovante de Pagamento: {e}")
+        return
+
+    dados_insercao = comprovante_de_pagamento_limpo.model_dump(exclude_none=True)
+    
+    dados_insercao["nome_do_arquivo"] = nome_arquivo_original
+
+    try:
+        resposta = supabase.table("comprovante_de_pagamento").insert(dados_insercao).execute()
+        
+        if resposta.data:
+            print(f"Sucesso! Comprovante de pagamento inserido no Supabase: ID {resposta.data[0]['id']}")
+        else:
+            print("Sucesso! Comprovante de pagamento inserido.")
+            
+    except Exception as e:
+        print(f"Erro ao inserir Comprovante de pagamento: {e}")
 
 def salvar_arquivo_no_storage(file_bytes: bytes, nome_arquivo: str, content_type: str):
     try:

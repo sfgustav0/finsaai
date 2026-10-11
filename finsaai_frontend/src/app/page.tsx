@@ -123,7 +123,7 @@ export default function Home() {
         const formData = new FormData();
         formData.append("file", fileObj.file);
 
-        const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/processar-pdf`, {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/processar_arquivos`, {
           method: "POST",
           body: formData,
         });

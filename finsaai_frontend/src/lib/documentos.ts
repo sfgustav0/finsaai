@@ -15,7 +15,7 @@ export async function obterUrlDoDocumento(nomeDoArquivo: string): Promise<string
 
   // 2. SE NÃO TEM OU EXPIROU: Faz a requisição pro backend
   console.log("Pedindo novo link pro servidor...");
-  const resposta = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/gerar-url-documento/${nomeDoArquivo}`);
+  const resposta = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/gerar-url-documento/${nomeDoArquivo}`);
   
   if (!resposta.ok) {
     throw new Error("Falha ao obter acesso ao documento");

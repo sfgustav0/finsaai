@@ -1,7 +1,4 @@
-from dotenv import load_dotenv
 from typesafe_sdk import AsyncTypeSafeClient, Choice
-
-load_dotenv()
 
 async def classificar_categoria_de_gasto(dados_estruturados_do_danfe: dict):
     async with AsyncTypeSafeClient() as client:

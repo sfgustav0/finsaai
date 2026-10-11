@@ -6,6 +6,9 @@ import { MoreHorizontal } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 
+import { useState } from "react";
+import ModalConciliacao from "@/components/ui/modal_de_conciliacao";
+
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -64,9 +67,23 @@ export type OutroDocumento = {
   categoria_de_gasto: string | null;
 }
 
+export type ComprovanteDePagamento = {
+  id: number
+  nome_do_arquivo: string | null;
+  nome_do_beneficiario: string | null;
+  cnpj_do_beneficiario: string | null;
+  nome_do_pagador: string | null;
+  cnpj_do_pagador: string | null;
+  data_de_pagamento: string | null;
+  valor_do_pagamento: number | null;
+  autenticacao: string | null;
+  id_da_transacao: string | null;
+}
+
 const helperDANFEs = createColumnHelper<DataTableFeatures, DANFE>()
 const helperBoletos = createColumnHelper<DataTableFeatures, Boleto>()
 const helperOutrosDocumentos = createColumnHelper<DataTableFeatures, OutroDocumento>()
+const helperComprovantesDePagamentos = createColumnHelper<DataTableFeatures, ComprovanteDePagamento>();
 
 const createSelectColumn = (helper: any) => 
   helper.display({
@@ -150,6 +167,16 @@ export const colunasDANFEs = helperDANFEs.columns([
         );
       }
     }),
+
+    helperDANFEs.display({
+    id: "status_conciliacao",
+    header: () => <div className="text-center font-medium">Status de conciliação</div>,
+    cell: ({ row }) => (
+      <div className="text-center">
+        <ModalConciliacao tipo="danfe" idDocumento={row.original.id} />
+      </div>
+    ),
+  }),
 
     helperDANFEs.display({
       id: "acoes",
@@ -286,7 +313,17 @@ export const colunasBoletos = helperBoletos.columns([
   helperBoletos.accessor("linha_digitavel", {
     header: ({ column }) => <DataTableColumnHeader column={column} title="Linha digitável" />
   }),
-  
+
+  helperBoletos.display({
+      id: "status_conciliacao",
+      header: () => <div className="text-center font-medium">Status de conciliação</div>,
+      cell: ({ row }) => (
+        <div className="text-center">
+          <ModalConciliacao tipo="boleto" idDocumento={row.original.id} />
+        </div>
+      ),
+    }),
+
     helperBoletos.display({
       id: "acoes",
       cell: ({ row }) => {
@@ -380,6 +417,16 @@ export const colunasOutrosDocumentos = helperOutrosDocumentos.columns([
       }
     }),
 
+    helperBoletos.display({
+        id: "status_conciliacao",
+        header: () => <div className="text-center font-medium">Status de conciliação</div>,
+        cell: ({ row }) => (
+          <div className="text-center">
+            <ModalConciliacao tipo="outro" idDocumento={row.original.id} />
+          </div>
+        ),
+      }),
+
     helperOutrosDocumentos.display({
       id: "acoes",
       cell: ({ row }) => {
@@ -397,6 +444,88 @@ export const colunasOutrosDocumentos = helperOutrosDocumentos.columns([
                   if (outro_documento.nome_do_arquivo) {
                     try {
                       const urlSegura = await obterUrlDoDocumento(outro_documento.nome_do_arquivo[0]);
+                      
+                      window.open(urlSegura, '_blank');
+                    } catch (erro) {
+                      console.error("Erro ao obter URL:", erro);
+                      alert("Erro ao abrir o documento. Verifique se o servidor está rodando.");
+                    }
+                  } else {
+                    alert("Arquivo não encontrado ou sem caminho registrado.");
+                  }
+                }}
+              >
+                Visualizar documento
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        )
+      },
+    }),
+  ])
+
+export const colunasComprovantesDePagamento = helperComprovantesDePagamentos.columns([
+  createSelectColumn(helperComprovantesDePagamentos),
+  helperComprovantesDePagamentos.accessor("id", { 
+    header: ({ column }) => <DataTableColumnHeader column={column} title="ID" /> 
+  }),
+  helperComprovantesDePagamentos.accessor("nome_do_beneficiario", { 
+    header: ({ column }) => <DataTableColumnHeader column={column} title="Nome do beneficiário" /> 
+  }),
+  helperComprovantesDePagamentos.accessor("cnpj_do_beneficiario", { 
+    header: ({ column }) => <DataTableColumnHeader column={column} title="CNPJ do beneficiário" /> 
+  }),
+  helperComprovantesDePagamentos.accessor("nome_do_pagador", { 
+    header: ({ column }) => <DataTableColumnHeader column={column} title="Nome do pagador" /> 
+  }),
+  helperComprovantesDePagamentos.accessor("cnpj_do_pagador", { 
+    header: ({ column }) => <DataTableColumnHeader column={column} title="CNPJ do pagador" /> 
+  }),
+  helperComprovantesDePagamentos.accessor("data_de_pagamento", {
+    header: ({ column }) => <DataTableColumnHeader column={column} title="Data de pagamento" />
+  }),
+  helperComprovantesDePagamentos.accessor("valor_do_pagamento", {
+    header: ({ column }) => <DataTableColumnHeader column={column} title="Valor do pagamento" />,
+    cell: ({ row }) => {
+      const valor = row.getValue("valor_do_pagamento") as number;
+      if (valor === null || valor === undefined) return "-";
+      return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(valor);
+    }
+  }),
+  helperComprovantesDePagamentos.accessor("autenticacao", {
+    header: ({ column }) => <DataTableColumnHeader column={column} title="Autenticação" />
+  }),
+  helperComprovantesDePagamentos.accessor("id_da_transacao", {
+    header: ({ column }) => <DataTableColumnHeader column={column} title="ID da transação" />
+  }),
+  
+    helperBoletos.display({
+        id: "status_conciliacao",
+        header: () => <div className="text-center font-medium">Status de conciliação</div>,
+        cell: ({ row }) => (
+          <div className="text-center">
+            <ModalConciliacao tipo="comprovante" idDocumento={row.original.id} />
+          </div>
+        ),
+      }),
+
+    helperComprovantesDePagamentos.display({
+      id: "acoes",
+      cell: ({ row }) => {
+        const comprovante = row.original
+        return (
+          <DropdownMenu>
+            <DropdownMenuTrigger className="flex h-8 w-8 items-center justify-center rounded-md hover:bg-gray-100 transition-colors">
+              <span className="sr-only">Abrir menu</span>
+              <MoreHorizontal className="h-4 w-4" />
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem 
+                className="cursor-pointer"
+                onClick={async () => {
+                  if (comprovante.nome_do_arquivo) {
+                    try {
+                      const urlSegura = await obterUrlDoDocumento(comprovante.nome_do_arquivo);
                       
                       window.open(urlSegura, '_blank');
                     } catch (erro) {

@@ -235,3 +235,59 @@ class DadosEstruturadosDoOutroDocumentoTratado(BaseModel):
             self.chave_de_acesso = hashlib.md5(string_base.encode('utf-8')).hexdigest()
             
         return self
+
+class DadosEstruturadosDoComprovanteDePagamentoTratado(BaseModel):
+    nome_do_beneficiario: Optional[str] = None
+    cnpj_do_beneficiario: Optional[str] = None
+    nome_do_pagador: Optional[str] = None
+    cnpj_do_pagador: Optional[str] = None
+    data_de_pagamento: Optional[str] = None
+    valor_do_pagamento: Optional[float] = None
+    autenticacao: Optional[float] = None
+    id_da_transacao: Optional[str] = None
+
+    @field_validator("nome_do_beneficiario", "nome_do_pagador", mode="before")
+    @classmethod
+    def limpar_nome(cls, valor):
+        if not valor or str(valor).strip().lower() in ["na", "n/a", "null", "", "none"]:
+            return None
+        return str(valor)
+
+    @field_validator("cnpj_do_beneficiario", "cnpj_do_pagador", mode="before")
+    @classmethod
+    def limpar_cnpj(cls, valor):
+        if not valor or str(valor).strip().lower() in ["na", "n/a", "null", "", "none"]:
+            return None
+        return re.sub(r'[^0-9]', '', str(valor))
+
+    @field_validator("data_de_pagamento", mode="before")
+    @classmethod
+    def limpar_data(cls, valor):
+        if not valor or str(valor).strip().lower() in ["na", "n/a", "null", "", "none"]:
+            return None
+        return str(valor)
+
+    @field_validator("valor_do_pagamento", mode="before")
+    @classmethod
+    def limpar_valor(cls, valor):
+        if not valor or str(valor).strip().lower() in ["na", "n/a", "null", "", "none"]:
+            return None
+            
+        valor_str = str(valor).replace("R$", "").strip()
+        
+        if "." in valor_str and "," in valor_str:
+            valor_str = valor_str.replace(".", "").replace(",", ".")
+        elif "," in valor_str:
+            valor_str = valor_str.replace(",", ".")
+            
+        try:
+            return float(valor_str)
+        except ValueError:
+            return None
+
+    @field_validator("autenticacao", "id_da_transacao", mode="before")
+    @classmethod
+    def limpar_numero(cls, valor):
+        if not valor or str(valor).strip().lower() in ["na", "n/a", "null", "", "none"]:
+            return None
+        return re.sub(r'[^0-9]', '', str(valor))
