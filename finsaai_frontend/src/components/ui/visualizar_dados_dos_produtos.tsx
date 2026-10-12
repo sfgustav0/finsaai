@@ -9,7 +9,7 @@ import {
   SheetTitle, 
   SheetTrigger 
 } from "@/components/ui/sheet";
-import { supabase } from "@/lib/supabase";
+import { createClient } from "@/utils/supabase/client";
 
 // Definimos uma interface TypeScript rigorosa para as propriedades (Props)
 interface BotaoVerProdutosProps {
@@ -27,6 +27,9 @@ export function BotaoVerProdutos({ chaveDeAcesso, tabelaProdutos }: BotaoVerProd
     
     setCarregando(true);
     
+    // Instanciar o cliente do browser com os cookies de login
+    const supabase = createClient();
+
     const { data, error } = await supabase
       .from(tabelaProdutos)
       .select("*")
