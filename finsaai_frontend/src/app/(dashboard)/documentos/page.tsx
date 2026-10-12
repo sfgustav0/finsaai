@@ -22,14 +22,14 @@ import {
   colunasComprovantesDePagamento
 } from "./columns";
 
+import { createClient } from "@/utils/supabase/server";
 
 export default async function DocumentosPage() {
+  const supabase = await createClient();
   
-  // 1. CAPTURAR O UTILIZADOR
   const { data: { user } } = await supabase.auth.getUser();
 
   if (!user) {
-    // Se não houver utilizador logado, pode redirecionar ou tratar o erro
     return <div>Acesso negado. Por favor, inicie sessão.</div>;
   }
 
