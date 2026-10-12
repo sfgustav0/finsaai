@@ -30,6 +30,7 @@ import {
 } from "@/components/ui/attachment";
 
 import { Spinner } from "@/components/ui/spinner";
+import { createClient } from "@/utils/supabase/client";
 
 type FileState = "idle" | "processing" | "error" | "done";
 
@@ -109,6 +110,15 @@ export default function Home() {
     if (isProcessing || files.length === 0) return;
     setIsProcessing(true);
 
+    const supabase = createClient();
+    const { data: { user }, error: userError } = await supabase.auth.getUser();
+
+    if (userError || !user) {
+      console.error("Erro: Utilizador não autenticado!");
+      setIsProcessing(false);
+      return; 
+    }
+
     const currentFiles = [...files];
 
     for (let i = 0; i < currentFiles.length; i++) {
@@ -122,6 +132,7 @@ export default function Home() {
       try {
         const formData = new FormData();
         formData.append("file", fileObj.file);
+        formData.append("user_id", user.id);
 
         const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/processar_arquivos`, {
           method: "POST",
@@ -162,7 +173,7 @@ export default function Home() {
       <div className="text-center mb-8">
         <div className="flex items-center justify-center gap-3 mb-2">
           <h1 className="text-3xl font-bold text-slate-900">
-            Envio de Notas Fiscais, Boletos ou Outros
+            Envio de documentos
           </h1>
           <Dialog>
             <DialogTrigger className="text-slate-400 hover:text-slate-600 transition-colors focus:outline-none rounded-full focus-visible:ring-2 focus-visible:ring-slate-400">
@@ -180,7 +191,7 @@ export default function Home() {
             </DialogContent>
           </Dialog>
         </div>
-        <p className="text-slate-500">Envie abaixo os seus documentos:</p>
+        <p className="text-slate-500">Envie Notas Fiscais, Boletos, Outros ou Comprovantes de pagamento abaixo:</p>
       </div>
 
       <Card className="w-full max-w-lg shadow-sm border-slate-200">

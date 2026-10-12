@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 
 import { Link } from "lucide-react";
 
-export default function BotaoConciliacao() {
+export default function BotaoConciliacao({ userId }: { userId: string }) {
   const [carregando, setCarregando] = useState(false);
   const [mensagem, setMensagem] = useState("");
 
@@ -15,8 +15,12 @@ export default function BotaoConciliacao() {
     setMensagem("");
     
     try {
+      const formData = new FormData();
+      formData.append("user_id", userId);
+
       const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/executar-conciliacao`, {
         method: "POST",
+        body: formData,
       });
 
       if (response.ok) {

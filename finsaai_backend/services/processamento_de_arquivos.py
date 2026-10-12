@@ -6,7 +6,7 @@ from core.config import supabase
 from database import manipulacao
 from agentes_de_ia import agente_de_ia_1, agente_de_ia_2, agente_de_ia_3
 
-async def processamento_de_arquivos(file: UploadFile):
+async def processamento_de_arquivos(file: UploadFile, user_id: str):
     try:
 
         conteudo_do_arquivo = await file.read()
@@ -36,30 +36,33 @@ async def processamento_de_arquivos(file: UploadFile):
                 
                 categoria_de_gasto = await agente_de_ia_2.classificar_categoria_de_gasto(dados_estruturados_do_danfe)
                 
-                manipulacao.salvar_dados_estruturados_do_danfe(dados_estruturados_do_danfe, categoria_de_gasto, nome_unico)
+                manipulacao.salvar_dados_estruturados_do_danfe(dados_estruturados_do_danfe, categoria_de_gasto, nome_unico, user_id)
                 
             elif classificacao == "Boleto":
                 dados_estruturados_do_boleto = documento.get("dados_estruturados_do_boleto", {})
-                manipulacao.salvar_dados_estruturados_do_boleto(dados_estruturados_do_boleto, nome_unico)
+                manipulacao.salvar_dados_estruturados_do_boleto(dados_estruturados_do_boleto, nome_unico, user_id)
                 
             elif classificacao == "Outro documento":
                 dados_estruturados_do_outro_documento = documento.get("dados_estruturados_do_outro_documento", {})
 
                 categoria_de_gasto = await agente_de_ia_3.classificar_categoria_de_gasto(dados_estruturados_do_outro_documento)
 
-                manipulacao.salvar_dados_estruturados_do_outro_documento(dados_estruturados_do_outro_documento, categoria_de_gasto, nome_unico)
+                manipulacao.salvar_dados_estruturados_do_outro_documento(dados_estruturados_do_outro_documento, categoria_de_gasto, nome_unico, user_id)
 
             elif classificacao == "Comprovante de pagamento":
                 dados_estruturados_do_comprovante_de_pagamento = documento.get("dados_estruturados_do_comprovante_de_pagamento", {})
-                manipulacao.salvar_dados_estruturados_do_comprovante_de_pagamento(dados_estruturados_do_comprovante_de_pagamento, nome_unico)
+                manipulacao.salvar_dados_estruturados_do_comprovante_de_pagamento(dados_estruturados_do_comprovante_de_pagamento, nome_unico, user_id)
 
         await file.seek(0)
         
         file_bytes = await file.read()
         
-        manipulacao.salvar_arquivo_no_storage(file_bytes, nome_unico, file.content_type)
+        manipulacao.salvar_arquivo_no_storage(file_bytes, nome_unico, file.content_type, user_id)
 
-        supabase.table("arquivos_processados").insert({"hash_do_arquivo": hash_do_arquivo}).execute()
+        supabase.table("arquivos_processados").insert({
+            "hash_do_arquivo": hash_do_arquivo,
+            "user_id": user_id
+        }).execute()
 
         return {"status": "sucesso", "mensagem": "Sucesso!"}
 

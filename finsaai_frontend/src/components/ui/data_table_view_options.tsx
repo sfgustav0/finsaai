@@ -8,7 +8,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 
-import { type DataTableFeatures } from "@/app/documentos/data_table_features"
+import { type DataTableFeatures } from "@/app/(dashboard)/documentos/data_table_features"
 
 interface DataTableViewOptionsProps<TData extends RowData> {
   table: Table<DataTableFeatures, TData>

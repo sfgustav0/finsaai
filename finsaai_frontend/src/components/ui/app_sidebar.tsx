@@ -2,6 +2,7 @@
 
 import Link from "next/link"
 import { UploadCloud, Check } from "lucide-react"
+import { LogoutButton } from "@/components/ui/logout-button"
 
 import {
   Sidebar,
@@ -14,6 +15,7 @@ import {
   SidebarMenuItem,
   SidebarHeader,
   SidebarTrigger,
+  SidebarFooter,
   useSidebar,
 } from "@/components/ui/sidebar"
 
@@ -52,6 +54,11 @@ export function AppSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
+
+      <SidebarFooter className="p-4">
+        <LogoutButton />
+      </SidebarFooter>
+      
     </Sidebar>
   )
 }

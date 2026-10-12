@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/dialog";
 
 import { Button, buttonVariants } from "@/components/ui/button";
+import { createClient } from "@/utils/supabase/client";
 
 import {
   Table,
@@ -35,8 +36,20 @@ export default function ModalConciliacao({ tipo, idDocumento }: ModalConciliacao
     setCarregando(true);
 
     try {
-      // O endpoint agora recebe o tipo e o ID de forma dinâmica
-      const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/conciliacao/documento/${tipo}/${idDocumento}`);
+      // 1. Instanciar o cliente e capturar o utilizador logado
+      const supabase = createClient();
+      const { data: { user } } = await supabase.auth.getUser();
+
+      if (!user) {
+        console.error("Erro: Utilizador não autenticado!");
+        setCarregando(false);
+        return;
+      }
+
+      // 2. Anexar o user_id no final do URL (como Query Parameter)
+      const url = `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/conciliacao/documento/${tipo}/${idDocumento}?user_id=${user.id}`;
+      
+      const res = await fetch(url);
       const data = await res.json();
       setDados(data);
     } catch (err) {

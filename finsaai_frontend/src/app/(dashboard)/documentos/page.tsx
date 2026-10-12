@@ -25,6 +25,14 @@ import {
 
 export default async function DocumentosPage() {
   
+  // 1. CAPTURAR O UTILIZADOR
+  const { data: { user } } = await supabase.auth.getUser();
+
+  if (!user) {
+    // Se não houver utilizador logado, pode redirecionar ou tratar o erro
+    return <div>Acesso negado. Por favor, inicie sessão.</div>;
+  }
+
   const [resNotas, resBoletos, resOutros, resComprovantes] = await Promise.all([
     supabase.from('danfe').select('*').order('created_at', { ascending: false }),
     supabase.from('boleto').select('*').order('created_at', { ascending: false }),
@@ -69,7 +77,7 @@ export default async function DocumentosPage() {
 
         <div>
           {/* O seu botão de conciliação */}
-          <BotaoConciliacao />
+          <BotaoConciliacao userId={user.id} />
         </div>
       </div>
 

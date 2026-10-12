@@ -1,7 +1,7 @@
 from core.config import supabase
 from schemas.valid_structured_output import DadosEstruturadosDoDanfeTratado, DadosEstruturadosDoBoletoTratado, DadosEstruturadosDoOutroDocumentoTratado, DadosEstruturadosDoComprovanteDePagamentoTratado
 
-def salvar_dados_estruturados_do_danfe(dados_estruturados_do_danfe: dict, categoria_de_gasto: str, nome_arquivo_original: str):
+def salvar_dados_estruturados_do_danfe(dados_estruturados_do_danfe: dict, categoria_de_gasto: str, nome_arquivo_original: str, user_id: str):
     emitente = dados_estruturados_do_danfe.get("emitente", {})
     destinatario = dados_estruturados_do_danfe.get("destinatario", {})
     calculo_do_imposto = dados_estruturados_do_danfe.get("calculo_do_imposto", {})
@@ -30,6 +30,7 @@ def salvar_dados_estruturados_do_danfe(dados_estruturados_do_danfe: dict, catego
 
     dados_para_insercao = danfe_limpo.model_dump(exclude_none=True)
     dados_para_insercao.pop("dados_do_produto", None)
+    dados_para_insercao["user_id"] = user_id
     
     try:
         verificacao = supabase.table("danfe").select("id, nome_do_arquivo").eq("chave_de_acesso", danfe_limpo.chave_de_acesso).execute()
@@ -63,7 +64,8 @@ def salvar_dados_estruturados_do_danfe(dados_estruturados_do_danfe: dict, catego
         lote_de_produtos.append({
             "chave_de_acesso": danfe_limpo.chave_de_acesso,
             "descricao_do_produto": produto.descricao_do_produto,
-            "quantidade": produto.quantidade
+            "quantidade": produto.quantidade,
+            "user_id": user_id
         })
     
     if lote_de_produtos:
@@ -73,7 +75,7 @@ def salvar_dados_estruturados_do_danfe(dados_estruturados_do_danfe: dict, catego
         except Exception as e:
             print(f"Erro ao inserir o lote de produtos: {e}")
 
-def salvar_dados_estruturados_do_boleto(dados_estruturados_do_boleto: dict, nome_arquivo_original: str):
+def salvar_dados_estruturados_do_boleto(dados_estruturados_do_boleto: dict, nome_arquivo_original: str, user_id: str):
     
     beneficiario = dados_estruturados_do_boleto.get("beneficiario", {})
     pagador = dados_estruturados_do_boleto.get("pagador", {})
@@ -97,8 +99,8 @@ def salvar_dados_estruturados_do_boleto(dados_estruturados_do_boleto: dict, nome
         return
 
     dados_insercao = boleto_limpo.model_dump(exclude_none=True)
-    
     dados_insercao["caminho_do_arquivo"] = nome_arquivo_original
+    dados_insercao["user_id"] = user_id
 
     try:
         resposta = supabase.table("boleto").insert(dados_insercao).execute()
@@ -111,7 +113,7 @@ def salvar_dados_estruturados_do_boleto(dados_estruturados_do_boleto: dict, nome
     except Exception as e:
         print(f"Erro ao inserir Boleto: {e}")
 
-def salvar_dados_estruturados_do_outro_documento(dados_estruturados_do_outro_documento: dict, categoria_de_gasto: str, nome_arquivo_original: str):
+def salvar_dados_estruturados_do_outro_documento(dados_estruturados_do_outro_documento: dict, categoria_de_gasto: str, nome_arquivo_original: str, user_id: str):
 
     emitente = dados_estruturados_do_outro_documento.get("emitente", {})
     destinatario = dados_estruturados_do_outro_documento.get("destinatario", {})
@@ -141,6 +143,7 @@ def salvar_dados_estruturados_do_outro_documento(dados_estruturados_do_outro_doc
 
     dados_para_insercao = outro_documento_limpo.model_dump(exclude_none=True)
     dados_para_insercao.pop("dados_do_produto", None)
+    dados_para_insercao["user_id"] = user_id
     
     try:
         verificacao = supabase.table("outro_documento").select("id, nome_do_arquivo").eq("chave_de_acesso", outro_documento_limpo.chave_de_acesso).execute()
@@ -174,7 +177,8 @@ def salvar_dados_estruturados_do_outro_documento(dados_estruturados_do_outro_doc
         lote_de_produtos.append({
             "chave_de_acesso": outro_documento_limpo.chave_de_acesso,
             "descricao_do_produto": produto.descricao_do_produto,
-            "quantidade": produto.quantidade
+            "quantidade": produto.quantidade,
+            "user_id": user_id
         })
     
     if lote_de_produtos:
@@ -184,7 +188,7 @@ def salvar_dados_estruturados_do_outro_documento(dados_estruturados_do_outro_doc
         except Exception as e:
             print(f"Erro ao inserir o lote de produtos: {e}")
 
-def salvar_dados_estruturados_do_comprovante_de_pagamento(dados_estruturados_do_comprovante_de_pagamento: dict, nome_arquivo_original: str):
+def salvar_dados_estruturados_do_comprovante_de_pagamento(dados_estruturados_do_comprovante_de_pagamento: dict, nome_arquivo_original: str, user_id: str):
     
     beneficiario = dados_estruturados_do_comprovante_de_pagamento.get("beneficiario", {})
     pagador = dados_estruturados_do_comprovante_de_pagamento.get("pagador", {})
@@ -205,8 +209,8 @@ def salvar_dados_estruturados_do_comprovante_de_pagamento(dados_estruturados_do_
         return
 
     dados_insercao = comprovante_de_pagamento_limpo.model_dump(exclude_none=True)
-    
     dados_insercao["nome_do_arquivo"] = nome_arquivo_original
+    dados_insercao["user_id"] = user_id
 
     try:
         resposta = supabase.table("comprovante_de_pagamento").insert(dados_insercao).execute()
@@ -219,7 +223,7 @@ def salvar_dados_estruturados_do_comprovante_de_pagamento(dados_estruturados_do_
     except Exception as e:
         print(f"Erro ao inserir Comprovante de pagamento: {e}")
 
-def salvar_arquivo_no_storage(file_bytes: bytes, nome_arquivo: str, content_type: str):
+def salvar_arquivo_no_storage(file_bytes: bytes, nome_arquivo: str, content_type: str, user_id: str):
     try:
         resposta = supabase.storage.from_("arquivos-dos-documentos-processados").upload(
             file=file_bytes,

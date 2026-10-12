@@ -1,9 +1,9 @@
 from core.config import supabase
 from typesafe_sdk import Choice, TypeSafeClient
 
-def sincronizar_danfes():
-    danfes = supabase.table('danfe').select('id').execute().data
-    registros_para_conciliacao = supabase.table('documentos_conciliados').select('id_danfe').execute().data
+def sincronizar_danfes(user_id: str):
+    danfes = supabase.table('danfe').select('id').eq('user_id', user_id).execute().data
+    registros_para_conciliacao = supabase.table('documentos_conciliados').select('id_danfe').eq('user_id', user_id).execute().data
     
     danfes_com_registros_para_conciliacao = [d['id_danfe'] for d in registros_para_conciliacao]
     
@@ -12,18 +12,19 @@ def sincronizar_danfes():
         if danfe['id'] not in danfes_com_registros_para_conciliacao:
             novos_registros.append({
                 "id_danfe": danfe['id'],
-                "status": "INCOMPLETO"
+                "status": "INCOMPLETO",
+                "user_id": user_id
             })
             
     if novos_registros:
         supabase.table('documentos_conciliados').insert(novos_registros).execute()
         print(f"[{len(novos_registros)}] Novos registros criados.")
 
-def obter_documentos_pendentes_de_conciliacao(tabela, coluna_de_referencia):
-    registros = supabase.table('documentos_conciliados').select(coluna_de_referencia).filter(coluna_de_referencia, 'not.is', 'null').execute().data
+def obter_documentos_pendentes_de_conciliacao(tabela, coluna_de_referencia, user_id: str):
+    registros = supabase.table('documentos_conciliados').select(coluna_de_referencia).eq('user_id', user_id).filter(coluna_de_referencia, 'not.is', 'null').execute().data
     ids_com_registros_para_conciliacao = [d[coluna_de_referencia] for d in registros]
     
-    query = supabase.table(tabela).select('*')
+    query = supabase.table(tabela).select('*').eq('user_id', user_id)
     if ids_com_registros_para_conciliacao:
         ids_formatados = ",".join(map(str, ids_com_registros_para_conciliacao))
         query = query.filter('id', 'not.in', f"({ids_formatados})")
@@ -37,20 +38,20 @@ def construir_criteria(documentos_pendentes_de_conciliacao, classificacao, escap
     criteria["nenhuma_correspondencia"] = {"what": escape}
     return criteria
 
-def conciliar_documentos():
+def conciliar_documentos(user_id: str):
     print("Iniciando conciliação...")
     
-    sincronizar_danfes()
+    sincronizar_danfes(user_id)
     
-    conciliacoes_em_aberto = supabase.table('documentos_conciliados').select('*').eq('status', 'INCOMPLETO').execute().data
+    conciliacoes_em_aberto = supabase.table('documentos_conciliados').select('*').eq('status', 'INCOMPLETO').eq('user_id', user_id).execute().data
     
     if not conciliacoes_em_aberto:
         print("Todos os DANFEs foram conciliados.")
         return
 
-    boletos_pendentes_de_conciliacao = obter_documentos_pendentes_de_conciliacao('boleto', 'id_boleto')
-    outros_documentos_pendentes_de_conciliacao = obter_documentos_pendentes_de_conciliacao('outro_documento', 'id_outro_documento')
-    comprovantes_de_pagamento_pendentes_de_conciliacao = obter_documentos_pendentes_de_conciliacao('comprovante_de_pagamento', 'id_comprovante_de_pagamento')
+    boletos_pendentes_de_conciliacao = obter_documentos_pendentes_de_conciliacao('boleto', 'id_boleto', user_id)
+    outros_documentos_pendentes_de_conciliacao = obter_documentos_pendentes_de_conciliacao('outro_documento', 'id_outro_documento', user_id)
+    comprovantes_de_pagamento_pendentes_de_conciliacao = obter_documentos_pendentes_de_conciliacao('comprovante_de_pagamento', 'id_comprovante_de_pagamento', user_id)
 
     criteria_para_boletos = construir_criteria(boletos_pendentes_de_conciliacao, "boleto", "Nenhum boleto corresponde a este DANFE.")
     criteria_para_outros_documentos = construir_criteria(outros_documentos_pendentes_de_conciliacao, "outro_documento", "Nenhum documento corresponde a este DANFE.")
@@ -60,7 +61,7 @@ def conciliar_documentos():
         for conciliacao in conciliacoes_em_aberto:
             print(f"\n--- Analisando Dossiê da DANFE {conciliacao['id_danfe']} ---")
             
-            danfe = supabase.table('danfe').select('*').eq('id', conciliacao['id_danfe']).single().execute().data
+            danfe = supabase.table('danfe').select('*').eq('id', conciliacao['id_danfe']).eq('user_id', user_id).single().execute().data
             
             state = {
                 "classificacao": "DANFE",

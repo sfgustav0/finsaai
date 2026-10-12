@@ -1,4 +1,4 @@
-from fastapi import APIRouter, UploadFile, File, HTTPException, BackgroundTasks
+from fastapi import APIRouter, UploadFile, File, Form, HTTPException, BackgroundTasks, Query
 from services.processamento_de_arquivos import processamento_de_arquivos
 from database import manipulacao
 from core.config import supabase
@@ -7,9 +7,9 @@ from agentes_de_ia.agente_de_ia_4 import conciliar_documentos
 router = APIRouter()
 
 @router.post("/processar_arquivos")
-async def processar_arquivos(file: UploadFile = File(...)):
+async def processar_arquivos(file: UploadFile = File(...), user_id: str = Form(...)):
     try:
-        resultado = await processamento_de_arquivos(file)
+        resultado = await processamento_de_arquivos(file, user_id)
         return resultado
         
     except Exception as e:
@@ -24,7 +24,7 @@ async def obter_url_documento(nome_arquivo: str):
     raise HTTPException(status_code=404, detail="Arquivo não encontrado")
 
 @router.get("/conciliacao/documento/{tipo}/{id_documento}")
-def obter_conciliacao_por_documento(tipo: str, id_documento: int):
+def obter_conciliacao_por_documento(tipo: str, id_documento: int, user_id: str = Query(...)):
     # 1. Mapeia o tipo recebido do frontend para a coluna correspondente no Supabase
     mapa_colunas = {
         "danfe": "id_danfe",
@@ -38,7 +38,11 @@ def obter_conciliacao_por_documento(tipo: str, id_documento: int):
         raise HTTPException(status_code=400, detail="Tipo de documento inválido")
 
     # 2. Procura qual Dossiê contém este ID específico
-    conciliacao_response = supabase.table('documentos_conciliados').select('*').eq(coluna_busca, id_documento).execute()
+    conciliacao_response = supabase.table('documentos_conciliados')\
+                                    .select('*')\
+                                    .eq(coluna_busca, id_documento)\
+                                    .eq('user_id', user_id)\
+                                    .execute()
 
     # Se não encontrar nenhuma conciliação vinculada a este documento
     if not conciliacao_response.data:
@@ -75,6 +79,6 @@ def obter_conciliacao_por_documento(tipo: str, id_documento: int):
     return resposta_final
 
 @router.post("/executar-conciliacao")
-def iniciar_conciliacao_ia(background_tasks: BackgroundTasks):
-    background_tasks.add_task(conciliar_documentos)
+def iniciar_conciliacao_ia(background_tasks: BackgroundTasks, user_id: str = Form(...)):
+    background_tasks.add_task(conciliar_documentos, user_id)
     return {"status": "sucesso", "mensagem": "Conciliação por IA iniciada em segundo plano."}
